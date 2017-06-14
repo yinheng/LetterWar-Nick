@@ -71,7 +71,7 @@ public class MyFrame {
     public void startCheck() {
         jTextPane.setText(letterCreate.letterCreate().name().toUpperCase());
 
-        boolean userInput = waitForInput(jTextPane.getText());
+        boolean userInput = waitForInput2(jTextPane.getText());
 
         if (userInput) {
             score++;
@@ -87,7 +87,47 @@ public class MyFrame {
         startCheck();
     }
 
-    public boolean waitForInput(String key) {
+    private boolean waitForInput2(String key) {
+        inputOK = false;
+
+        Object lock = new Object();
+
+        KeyAdapter adapter = new KeyAdapter() {
+
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+
+                MyLogger.log("keyReleased----" + e.getKeyChar());
+
+                jTextPaneTips.setText(String.valueOf(e.getKeyChar()));
+
+                String kc = String.valueOf(e.getKeyChar());
+
+                if (kc.equalsIgnoreCase(key)) {
+                    inputOK = true;
+                }
+
+                synchronized (lock) {
+                    lock.notify();
+                }
+
+                startBtn.removeKeyListener(this);
+            }
+        };
+
+        startBtn.addKeyListener(adapter);
+
+        try {
+            synchronized (lock) {
+                lock.wait(1000);
+            }
+            return inputOK;
+        } catch (InterruptedException e) {
+            return false;
+        }
+    }
+
+    private boolean waitForInput(String key) {
 
         inputOK = false;
 
